@@ -1,0 +1,10 @@
+# 评测脚本和数据只留在本地。数据来自个人对话和未公开稿件，永远不提交
+eval/
+
+# 旧的「说清楚」改稿 skill，暂不发布
+archive/
+
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
