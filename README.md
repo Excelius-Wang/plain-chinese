@@ -1,5 +1,7 @@
 # plain-chinese（平实中文）
 
+[![skills.sh](https://skills.sh/b/Excelius-Wang/plain-chinese)](https://skills.sh/Excelius-Wang/plain-chinese)
+
 让 AI 写的中文合乎中文的说法，读的人一遍就懂。
 
 Writing rules for AI agents that write in Chinese: no Europeanized syntax, no translationese, easy to follow on the first read.
@@ -27,36 +29,27 @@ AI 写中文，常拿英文的句子骨架往里填词，比如「对代码进�
 
 ## 安装
 
-先克隆仓库，进到仓库根目录，后面的命令都在这里执行：
+选一种装法：
+
+- 装成 skill：由 agent 自己判断什么时候读规则。一条命令就能装好。
+- 常驻：把规则放进全局指令，每次对话都读。想让每次中文回答都照规则写，用这种。
+
+### 装成 skill
+
+用 [skills](https://github.com/vercel-labs/skills) 命令，一次装给 Codex、Claude Code 和 Cursor：
+
+```bash
+npx skills add Excelius-Wang/plain-chinese -g
+```
+
+`-g` 表示装到用户目录，所有项目都能用；不加就只装在当前项目里。命令会问你装给哪几个客户端，然后把 skill 复制到 `~/.agents/skills`。Codex 和 Cursor 直接读这里；选了 Claude Code 的话，还会在 `~/.claude/skills` 建一个软链接指过来。以后更新规则，执行 `npx skills update`。
+
+不想用这个命令，也可以克隆仓库，手动建软链接。Codex 和 Cursor 都读 `~/.agents/skills`，链一次两个都能用。Claude Code 读 `~/.claude/skills`。
 
 ```bash
 git clone https://github.com/Excelius-Wang/plain-chinese.git
 cd plain-chinese
-```
 
-有两种装法，选一种，只执行你用的客户端那一条。想让每次中文回答都照规则写，用第一种。
-
-### 常驻：放进全局指令
-
-agent 每次对话都会读全局指令。下面的命令去掉 `SKILL.md` 开头的元信息，把规则正文追加到全局指令文件末尾。每个客户端只执行一次，重复执行会追加两遍。以后更新规则，先删掉原来追加的那段。
-
-```bash
-# Codex
-mkdir -p "${CODEX_HOME:-$HOME/.codex}"
-{ echo; awk 'f; /^---$/ && ++n == 2 { f = 1 }' skills/plain-chinese/SKILL.md; } >> "${CODEX_HOME:-$HOME/.codex}/AGENTS.md"
-
-# Claude Code
-mkdir -p ~/.claude
-{ echo; awk 'f; /^---$/ && ++n == 2 { f = 1 }' skills/plain-chinese/SKILL.md; } >> ~/.claude/CLAUDE.md
-```
-
-Cursor 没有全局指令文件。打开 Customize → Rules，把 `SKILL.md` 第二个 `---` 以下的内容贴进 User Rules。User Rules 只在 Agent 对话里生效。
-
-### 按需：装成 skill
-
-把 skill 目录软链接到客户端的 skills 目录。Codex 和 Cursor 都读 `~/.agents/skills`，链一次两个都能用。Claude Code 读 `~/.claude/skills`。
-
-```bash
 # Codex 和 Cursor
 mkdir -p ~/.agents/skills && ln -s "$PWD/skills/plain-chinese" ~/.agents/skills/plain-chinese
 
@@ -70,11 +63,34 @@ Codex 自带的 skill-installer 装到 `${CODEX_HOME:-$HOME/.codex}/skills`，Co
 
 装成 skill 以后，由 agent 自己判断什么时候读规则。在 Codex（gpt-6-astra，推理强度 medium）上测过一次：日常提问、讲解、起草、改稿、英译中、技术题配中文解释，这 6 类请求各跑 3 遍，18 次都读了规则；只要英文、只要代码、逐字照抄，这 3 类各跑 3 遍，9 次都没读。测试时关掉了作者装的另外几个中文写作 skill。题目不多，只能说明常见的请求会读，不保证每次都读。
 
+### 常驻：放进全局指令
+
+先克隆仓库，进到仓库根目录，后面的命令都在这里执行：
+
+```bash
+git clone https://github.com/Excelius-Wang/plain-chinese.git
+cd plain-chinese
+```
+
+agent 每次对话都会读全局指令。下面的命令去掉 `SKILL.md` 开头的元信息，把规则正文追加到全局指令文件末尾。只执行你用的客户端那一条，每个客户端只执行一次，重复执行会追加两遍。以后更新规则，先删掉原来追加的那段。
+
+```bash
+# Codex
+mkdir -p "${CODEX_HOME:-$HOME/.codex}"
+{ echo; awk 'f; /^---$/ && ++n == 2 { f = 1 }' skills/plain-chinese/SKILL.md; } >> "${CODEX_HOME:-$HOME/.codex}/AGENTS.md"
+
+# Claude Code
+mkdir -p ~/.claude
+{ echo; awk 'f; /^---$/ && ++n == 2 { f = 1 }' skills/plain-chinese/SKILL.md; } >> ~/.claude/CLAUDE.md
+```
+
+Cursor 没有全局指令文件。打开 Customize → Rules，把 `SKILL.md` 第二个 `---` 以下的内容贴进 User Rules。User Rules 只在 Agent 对话里生效。
+
 上面的目录和菜单在 2026 年 10 月按各家官方文档核对过：[Codex](https://developers.openai.com/codex/skills)、[Claude Code](https://code.claude.com/docs/en/skills)、[Cursor skills](https://cursor.com/docs/skills)、[Cursor rules](https://cursor.com/docs/rules)。规则的写作效果只在 Codex 上测过，Claude Code 和 Cursor 上没测。
 
 ## 效果
 
-下面的 72 对盲评是用上一版正文测的。之后正文改了三处，都只做了针对性复测，没有重跑盲评：
+下面的 72 对盲评用的是发布前的一版正文。v0.1.0 发布前，正文又改了三处，都只做了针对性复测，没有重跑盲评：
 
 - 换了一个例句。旧例句「他收入少了，只好换工作」多出了原句没有的「只好」，模型改稿时会跟着补，3 次里有 2 次。新例句改成「他收入少了，就换了工作」，同样的题 3 次都没再补。
 - 「用户点名的文体、口吻和格式优先」这句从后面挪到了开头。
